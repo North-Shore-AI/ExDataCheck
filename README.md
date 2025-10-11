@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/ex_data_check.svg" alt="ExDataCheck" width="150"/>
+  <img src="assets/ExDataCheck.svg" alt="ExDataCheck" width="150"/>
 </p>
 
 # ExDataCheck
