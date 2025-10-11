@@ -6,6 +6,13 @@
 
 **Data Validation and Quality Library for ML Pipelines**
 
+[![Elixir](https://img.shields.io/badge/elixir-1.14+-purple.svg)](https://elixir-lang.org)
+[![OTP](https://img.shields.io/badge/otp-25+-red.svg)](https://www.erlang.org)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/North-Shore-AI/ExDataCheck/blob/main/LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-hexdocs-blueviolet.svg)](https://hexdocs.pm/ex_data_check)
+
+---
+
 A comprehensive data validation and quality assessment library for Elixir, specifically designed for machine learning workflows. ExDataCheck provides Great Expectations-style validation, data profiling, schema validation, and quality metrics to ensure your ML pipelines work with high-quality data.
 
 ## Features
