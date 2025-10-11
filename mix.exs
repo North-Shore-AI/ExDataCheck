@@ -59,7 +59,7 @@ defmodule ExDataCheck.MixProject do
       homepage_url: @source_url,
       extras: ["README.md", "CHANGELOG.md"],
       assets: %{"assets" => "assets"},
-      logo: "assets/ex_data_check.svg",
+      logo: "assets/ExDataCheck.svg",
       before_closing_head_tag: &mermaid_config/1
     ]
   end
