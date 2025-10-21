@@ -68,13 +68,13 @@ defmodule ExDataCheck do
   - `ExDataCheck.Expectations.Schema` - Schema expectations (column existence, types, counts)
   - `ExDataCheck.Expectations.Value` - Value expectations (ranges, sets, patterns)
   - `ExDataCheck.Expectations.Statistical` - Statistical expectations (mean, median, stdev, normality)
-  - `ExDataCheck.Expectations.ML` - ML-specific expectations (drift, distributions) [Coming in v0.2]
+  - `ExDataCheck.Expectations.ML` - ML-specific expectations (label balance, correlations, missing values)
 
   """
 
   alias ExDataCheck.{ValidationResult, ValidationError, Expectation, Profile}
   alias ExDataCheck.Validator.ColumnExtractor
-  alias ExDataCheck.Expectations.{Schema, Value, Statistical}
+  alias ExDataCheck.Expectations.{Schema, Value, Statistical, ML}
 
   # Convenience delegations to expectation modules
   # This allows users to call ExDataCheck.expect_column_to_exist(:age)
@@ -108,6 +108,13 @@ defmodule ExDataCheck do
 
   defdelegate expect_column_values_to_be_normal(column), to: Statistical
   defdelegate expect_column_values_to_be_normal(column, opts), to: Statistical
+
+  # ML-specific expectations
+  defdelegate expect_label_balance(column, opts \\ []), to: ML
+  defdelegate expect_label_cardinality(column, opts \\ []), to: ML
+  defdelegate expect_feature_correlation(column1, column2, opts \\ []), to: ML
+  defdelegate expect_no_missing_values(column), to: ML
+  defdelegate expect_table_row_count_to_be_between(min, max), to: ML
 
   @doc """
   Profiles a dataset to analyze its structure and quality.
