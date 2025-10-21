@@ -5,47 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2025-10-20
 
 ### Added
-- Initial project structure
-- Core data structures (Expectation, ValidationResult)
-- Basic README and documentation
-- Architecture documentation
-- Expectations system design
-- Validator specifications
-- Implementation roadmap
 
-## [0.1.0] - TBD
+#### Core Validation Framework
+- Expectation system with declarative data quality requirements
+- ValidationResult for aggregated validation results
+- ExpectationResult for individual expectation results  
+- ValidationError exception for fail-fast scenarios
 
-### Planned
-- Core validation framework
-- Value-based expectations
-- Schema validation
-- Basic data profiling
-- Batch validator
-- Streaming support (basic)
-- Quality metrics
-- Report generation (Markdown, JSON)
+#### Schema Expectations (3 expectations)
+- expect_column_to_exist/1
+- expect_column_to_be_of_type/2
+- expect_column_count_to_equal/1
 
-## Future Releases
+#### Value Expectations (8 expectations)
+- expect_column_values_to_be_between/3
+- expect_column_values_to_be_in_set/2
+- expect_column_values_to_match_regex/2
+- expect_column_values_to_not_be_null/1
+- expect_column_values_to_be_unique/1
+- expect_column_values_to_be_increasing/1
+- expect_column_values_to_be_decreasing/1
+- expect_column_value_lengths_to_be_between/3
 
-See [docs/roadmap.md](docs/roadmap.md) for detailed release planning.
+#### Data Profiling
+- Profile system with comprehensive dataset statistics
+- Statistics utilities (min, max, mean, median, stdev, variance, quantiles)
+- Automatic type inference
+- Quality score calculation
+- JSON and Markdown export
 
-### v0.2.0 - Statistical & ML Features
-- Statistical expectations
-- ML-specific validations
-- Data drift detection
-- Advanced profiling
+#### Main API
+- validate/2 - Validate dataset against expectations
+- validate!/2 - Validate with exception on failure
+- profile/1 - Generate dataset profile
+- Convenience functions for all expectations
 
-### v0.3.0 - Production Features
-- Full streaming support
-- Quality monitoring
-- Pipeline integration
-- Enhanced reporting
+### Technical
+- Test Coverage: 186 tests (4 doctests, 17 properties, 165 unit)
+- Elixir: ~> 1.14
+- OTP: >= 25
+- Dependencies: Jason, StreamData (test only)
 
-### v0.4.0 - Enterprise Features
-- Custom expectations framework
-- Expectation suite management
-- Multi-dataset validation
-- Performance optimization
+[0.1.0]: https://github.com/North-Shore-AI/ExDataCheck/releases/tag/v0.1.0

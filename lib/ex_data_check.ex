@@ -72,7 +72,7 @@ defmodule ExDataCheck do
 
   """
 
-  alias ExDataCheck.{ValidationResult, ValidationError, Expectation}
+  alias ExDataCheck.{ValidationResult, ValidationError, Expectation, Profile}
   alias ExDataCheck.Validator.ColumnExtractor
   alias ExDataCheck.Expectations.{Schema, Value}
 
@@ -96,6 +96,95 @@ defmodule ExDataCheck do
 
   defdelegate expect_column_value_lengths_to_be_between(column, min_length, max_length),
     to: Value
+
+  @doc """
+  Profiles a dataset to analyze its structure and quality.
+
+  Returns a `Profile` struct containing:
+  - Row and column counts
+  - Column-level statistics
+  - Missing value analysis
+  - Quality score
+
+  ## Parameters
+
+    * `dataset` - List of maps or keyword lists
+
+  ## Examples
+
+      iex> dataset = [%{age: 25, name: "Alice"}, %{age: 30, name: "Bob"}]
+      iex> profile = ExDataCheck.profile(dataset)
+      iex> profile.row_count
+      2
+      iex> profile.column_count
+      2
+
+  """
+  @spec profile(list(map() | keyword())) :: Profile.t()
+  def profile(dataset) do
+    column_profiles = build_column_profiles(dataset)
+    Profile.new(length(dataset), column_profiles)
+  end
+
+  # Private profiling functions
+
+  defp build_column_profiles(dataset) do
+    columns = ColumnExtractor.columns(dataset)
+
+    columns
+    |> Enum.map(fn column ->
+      {column, profile_column(dataset, column)}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp profile_column(dataset, column) do
+    values = ColumnExtractor.extract(dataset, column)
+    non_nil_values = Enum.reject(values, &is_nil/1)
+    missing_count = length(values) - length(non_nil_values)
+
+    type = infer_type(non_nil_values)
+    stats = calculate_column_stats(non_nil_values, type)
+
+    Map.merge(stats, %{
+      type: type,
+      missing: missing_count,
+      cardinality: length(Enum.uniq(non_nil_values))
+    })
+  end
+
+  defp infer_type([]), do: :unknown
+
+  defp infer_type(values) do
+    sample = Enum.take(values, 100)
+
+    cond do
+      Enum.all?(sample, &is_integer/1) -> :integer
+      Enum.all?(sample, &is_float/1) -> :float
+      Enum.all?(sample, &is_number/1) -> :number
+      Enum.all?(sample, &is_binary/1) -> :string
+      Enum.all?(sample, &is_boolean/1) -> :boolean
+      Enum.all?(sample, &is_atom/1) -> :atom
+      Enum.all?(sample, &is_list/1) -> :list
+      Enum.all?(sample, &is_map/1) -> :map
+      true -> :mixed
+    end
+  end
+
+  defp calculate_column_stats(values, type)
+       when type in [:integer, :float, :number] and length(values) > 0 do
+    alias ExDataCheck.Statistics
+
+    %{
+      min: Statistics.min(values),
+      max: Statistics.max(values),
+      mean: Statistics.mean(values),
+      median: Statistics.median(values),
+      stdev: Statistics.stdev(values)
+    }
+  end
+
+  defp calculate_column_stats(_values, _type), do: %{}
 
   @doc """
   Validates a dataset against a list of expectations.

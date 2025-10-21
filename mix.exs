@@ -28,6 +28,7 @@ defmodule ExDataCheck.MixProject do
 
   defp deps do
     [
+      {:jason, "~> 1.4"},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:stream_data, "~> 1.1", only: :test}
     ]
