@@ -34,7 +34,7 @@ defmodule ExDataCheck.Expectations.ML do
 
   """
 
-  alias ExDataCheck.{Expectation, ExpectationResult, Correlation}
+  alias ExDataCheck.{Expectation, ExpectationResult, Correlation, Drift}
   alias ExDataCheck.Validator.ColumnExtractor
 
   @doc """
@@ -314,5 +314,77 @@ defmodule ExDataCheck.Expectations.ML do
     end
 
     Expectation.new(:row_count_range, nil, validator, %{min: min, max: max})
+  end
+
+  @doc """
+  Expects no significant data drift from baseline distribution.
+
+  Compares current data against a baseline (typically training data) to detect
+  distribution changes that could degrade model performance.
+
+  ## Parameters
+
+    * `column` - Column name to check for drift
+    * `baseline` - Baseline distribution created with `Drift.create_baseline/1`
+    * `opts` - Options
+      * `:threshold` - Drift score threshold (default: 0.05)
+      * `:method` - Detection method (default: :auto)
+
+  ## Examples
+
+      # Create baseline from training data
+      training_data = [%{feature: 25}, %{feature: 30}, %{feature: 35}]
+      baseline = ExDataCheck.Drift.create_baseline(training_data)
+
+      # Check production data
+      production_data = [%{feature: 26}, %{feature: 31}, %{feature: 36}]
+      expectation = ExDataCheck.Expectations.ML.expect_no_data_drift(:feature, baseline)
+      result = expectation.validator.(production_data)
+
+  """
+  @spec expect_no_data_drift(atom() | String.t(), Drift.baseline(), keyword()) ::
+          Expectation.t()
+  def expect_no_data_drift(column, baseline, opts \\ []) do
+    threshold = Keyword.get(opts, :threshold, 0.05)
+    method = Keyword.get(opts, :method, :auto)
+
+    validator = fn dataset ->
+      column_baseline = Map.get(baseline, column)
+
+      if column_baseline == nil do
+        ExpectationResult.new(
+          false,
+          "expect no drift in column #{inspect(column)}",
+          %{error: "column not found in baseline"},
+          %{column: column}
+        )
+      else
+        drift_result =
+          Drift.detect(dataset, %{column => column_baseline},
+            threshold: threshold,
+            method: method
+          )
+
+        drift_score = drift_result.drift_scores[column] || 0.0
+        drifted = drift_score > threshold
+
+        observed = %{
+          column: column,
+          drift_score: drift_score,
+          threshold: threshold,
+          drifted: drifted,
+          method: drift_result.method
+        }
+
+        ExpectationResult.new(
+          !drifted,
+          "expect no drift in column #{inspect(column)} (threshold: #{threshold})",
+          observed,
+          %{threshold: threshold, method: method}
+        )
+      end
+    end
+
+    Expectation.new(:no_drift, column, validator, %{threshold: threshold, method: method})
   end
 end

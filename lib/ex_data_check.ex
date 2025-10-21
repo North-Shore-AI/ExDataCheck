@@ -62,6 +62,9 @@ defmodule ExDataCheck do
 
   - `validate/2` - Validate dataset against expectations, returns ValidationResult
   - `validate!/2` - Validate and raise on failure
+  - `profile/1` - Generate comprehensive dataset profile
+  - `create_baseline/1` - Create distribution baseline for drift detection
+  - `detect_drift/2` - Detect distribution drift from baseline
 
   ## Expectation Modules
 
@@ -72,7 +75,7 @@ defmodule ExDataCheck do
 
   """
 
-  alias ExDataCheck.{ValidationResult, ValidationError, Expectation, Profile}
+  alias ExDataCheck.{ValidationResult, ValidationError, Expectation, Profile, Drift}
   alias ExDataCheck.Validator.ColumnExtractor
   alias ExDataCheck.Expectations.{Schema, Value, Statistical, ML}
 
@@ -115,6 +118,12 @@ defmodule ExDataCheck do
   defdelegate expect_feature_correlation(column1, column2, opts \\ []), to: ML
   defdelegate expect_no_missing_values(column), to: ML
   defdelegate expect_table_row_count_to_be_between(min, max), to: ML
+  defdelegate expect_no_data_drift(column, baseline, opts \\ []), to: ML
+
+  # Drift detection utilities
+  defdelegate create_baseline(dataset), to: Drift
+  defdelegate detect_drift(dataset, baseline), to: Drift, as: :detect
+  defdelegate detect_drift(dataset, baseline, opts), to: Drift, as: :detect
 
   @doc """
   Profiles a dataset to analyze its structure and quality.
