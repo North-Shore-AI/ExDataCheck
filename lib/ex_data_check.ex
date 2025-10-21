@@ -66,15 +66,15 @@ defmodule ExDataCheck do
   ## Expectation Modules
 
   - `ExDataCheck.Expectations.Schema` - Schema expectations (column existence, types, counts)
-  - `ExDataCheck.Expectations.Value` - Value expectations (ranges, sets, patterns) [Coming in v0.1]
-  - `ExDataCheck.Expectations.Statistical` - Statistical expectations (mean, median, etc.) [Coming in v0.2]
+  - `ExDataCheck.Expectations.Value` - Value expectations (ranges, sets, patterns)
+  - `ExDataCheck.Expectations.Statistical` - Statistical expectations (mean, median, stdev, normality)
   - `ExDataCheck.Expectations.ML` - ML-specific expectations (drift, distributions) [Coming in v0.2]
 
   """
 
   alias ExDataCheck.{ValidationResult, ValidationError, Expectation, Profile}
   alias ExDataCheck.Validator.ColumnExtractor
-  alias ExDataCheck.Expectations.{Schema, Value}
+  alias ExDataCheck.Expectations.{Schema, Value, Statistical}
 
   # Convenience delegations to expectation modules
   # This allows users to call ExDataCheck.expect_column_to_exist(:age)
@@ -96,6 +96,18 @@ defmodule ExDataCheck do
 
   defdelegate expect_column_value_lengths_to_be_between(column, min_length, max_length),
     to: Value
+
+  # Statistical expectations
+  defdelegate expect_column_mean_to_be_between(column, min, max), to: Statistical
+  defdelegate expect_column_median_to_be_between(column, min, max), to: Statistical
+  defdelegate expect_column_stdev_to_be_between(column, min, max), to: Statistical
+  defdelegate expect_column_quantile_to_be(column, quantile, expected_value), to: Statistical
+
+  defdelegate expect_column_quantile_to_be(column, quantile, expected_value, opts),
+    to: Statistical
+
+  defdelegate expect_column_values_to_be_normal(column), to: Statistical
+  defdelegate expect_column_values_to_be_normal(column, opts), to: Statistical
 
   @doc """
   Profiles a dataset to analyze its structure and quality.
