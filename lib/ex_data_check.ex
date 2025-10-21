@@ -16,27 +16,46 @@ defmodule ExDataCheck do
 
   ## Quick Start
 
-      # Define expectations
+      # Import convenience functions
+      import ExDataCheck
+
+      # Define your dataset
       dataset = [
-        %{age: 25, name: "Alice", score: 0.85},
-        %{age: 30, name: "Bob", score: 0.92}
+        %{age: 25, name: "Alice", email: "alice@example.com", score: 0.85},
+        %{age: 30, name: "Bob", email: "bob@example.com", score: 0.92},
+        %{age: 35, name: "Charlie", email: "charlie@example.com", score: 0.78}
       ]
 
+      # Define expectations using convenience functions
       expectations = [
+        # Schema expectations
         expect_column_to_exist(:age),
+        expect_column_to_exist(:email),
         expect_column_to_be_of_type(:age, :integer),
-        expect_column_to_be_of_type(:score, :float)
+        expect_column_to_be_of_type(:name, :string),
+        expect_column_count_to_equal(4),
+
+        # Value expectations
+        expect_column_values_to_be_between(:age, 18, 100),
+        expect_column_values_to_be_between(:score, 0.0, 1.0),
+        expect_column_values_to_match_regex(:email, ~r/@/),
+        expect_column_values_to_not_be_null(:name),
+        expect_column_values_to_be_unique(:email),
+        expect_column_value_lengths_to_be_between(:name, 2, 50)
       ]
 
       # Validate
       result = ExDataCheck.validate(dataset, expectations)
 
       # Check results
-      if result.success do
-        IO.puts("All expectations met!")
-      else
-        failed = ExDataCheck.ValidationResult.failed_expectations(result)
-        IO.inspect(failed, label: "Failed expectations")
+      case result do
+        %{success: true} = r ->
+          IO.puts("✓ All expectations met!")
+
+        %{success: false} = r ->
+          IO.puts("✗ Some expectations failed")
+          failed = ExDataCheck.ValidationResult.failed_expectations(r)
+          Enum.each(failed, fn f -> IO.puts("  - " <> f.expectation) end)
       end
 
   ## Main API
@@ -55,6 +74,28 @@ defmodule ExDataCheck do
 
   alias ExDataCheck.{ValidationResult, ValidationError, Expectation}
   alias ExDataCheck.Validator.ColumnExtractor
+  alias ExDataCheck.Expectations.{Schema, Value}
+
+  # Convenience delegations to expectation modules
+  # This allows users to call ExDataCheck.expect_column_to_exist(:age)
+  # instead of ExDataCheck.Expectations.Schema.expect_column_to_exist(:age)
+
+  # Schema expectations
+  defdelegate expect_column_to_exist(column), to: Schema
+  defdelegate expect_column_to_be_of_type(column, type), to: Schema
+  defdelegate expect_column_count_to_equal(count), to: Schema
+
+  # Value expectations
+  defdelegate expect_column_values_to_be_between(column, min, max), to: Value
+  defdelegate expect_column_values_to_be_in_set(column, allowed_values), to: Value
+  defdelegate expect_column_values_to_match_regex(column, pattern), to: Value
+  defdelegate expect_column_values_to_not_be_null(column), to: Value
+  defdelegate expect_column_values_to_be_unique(column), to: Value
+  defdelegate expect_column_values_to_be_increasing(column), to: Value
+  defdelegate expect_column_values_to_be_decreasing(column), to: Value
+
+  defdelegate expect_column_value_lengths_to_be_between(column, min_length, max_length),
+    to: Value
 
   @doc """
   Validates a dataset against a list of expectations.
