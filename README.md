@@ -1096,7 +1096,9 @@ See the `examples/` directory for complete working examples:
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - see LICENSE file for details.
+
+Copyright (c) 2025 North Shore AI
 
 ## 🙏 Acknowledgments
 
