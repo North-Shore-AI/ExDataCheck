@@ -133,10 +133,15 @@ defmodule ExDataCheck do
   - Column-level statistics
   - Missing value analysis
   - Quality score
+  - Outlier detection (optional)
+  - Correlation matrix (optional)
 
   ## Parameters
 
     * `dataset` - List of maps or keyword lists
+    * `opts` - Options
+      * `:detailed` - Include outliers and correlations (default: false)
+      * `:outlier_method` - Outlier detection method (`:iqr` or `:zscore`, default: `:iqr`)
 
   ## Examples
 
@@ -147,26 +152,41 @@ defmodule ExDataCheck do
       iex> profile.column_count
       2
 
+      # Detailed profiling with outliers and correlations
+      profile = ExDataCheck.profile(dataset, detailed: true)
+
   """
-  @spec profile(list(map() | keyword())) :: Profile.t()
-  def profile(dataset) do
-    column_profiles = build_column_profiles(dataset)
+  @spec profile(list(map() | keyword()), keyword()) :: Profile.t()
+  def profile(dataset, opts \\ []) do
+    column_profiles = build_column_profiles(dataset, opts)
+
+    # Add advanced features if detailed mode
+    enhanced_profile =
+      if Keyword.get(opts, :detailed, false) do
+        add_advanced_profiling(dataset, column_profiles, opts)
+      else
+        %{}
+      end
+
     Profile.new(length(dataset), column_profiles)
+    |> Map.merge(enhanced_profile)
   end
 
   # Private profiling functions
 
-  defp build_column_profiles(dataset) do
+  defp build_column_profiles(dataset, opts) do
     columns = ColumnExtractor.columns(dataset)
+    detect_outliers = Keyword.get(opts, :detailed, false)
+    outlier_method = Keyword.get(opts, :outlier_method, :iqr)
 
     columns
     |> Enum.map(fn column ->
-      {column, profile_column(dataset, column)}
+      {column, profile_column(dataset, column, detect_outliers, outlier_method)}
     end)
     |> Enum.into(%{})
   end
 
-  defp profile_column(dataset, column) do
+  defp profile_column(dataset, column, detect_outliers, outlier_method) do
     values = ColumnExtractor.extract(dataset, column)
     non_nil_values = Enum.reject(values, &is_nil/1)
     missing_count = length(values) - length(non_nil_values)
@@ -174,7 +194,19 @@ defmodule ExDataCheck do
     type = infer_type(non_nil_values)
     stats = calculate_column_stats(non_nil_values, type)
 
-    Map.merge(stats, %{
+    outlier_info =
+      if detect_outliers and type in [:integer, :float, :number] and length(non_nil_values) > 0 do
+        outlier_result =
+          ExDataCheck.Outliers.outlier_summary(non_nil_values, method: outlier_method)
+
+        %{outliers: outlier_result}
+      else
+        %{}
+      end
+
+    stats
+    |> Map.merge(outlier_info)
+    |> Map.merge(%{
       type: type,
       missing: missing_count,
       cardinality: length(Enum.uniq(non_nil_values))
@@ -213,6 +245,23 @@ defmodule ExDataCheck do
   end
 
   defp calculate_column_stats(_values, _type), do: %{}
+
+  defp add_advanced_profiling(dataset, column_profiles, _opts) do
+    # Get numeric columns for correlation matrix
+    numeric_columns =
+      column_profiles
+      |> Enum.filter(fn {_col, profile} -> profile.type in [:integer, :float, :number] end)
+      |> Enum.map(fn {col, _profile} -> col end)
+
+    correlation_matrix =
+      if length(numeric_columns) > 1 do
+        ExDataCheck.Correlation.correlation_matrix(dataset, numeric_columns)
+      else
+        %{}
+      end
+
+    %{correlation_matrix: correlation_matrix}
+  end
 
   @doc """
   Validates a dataset against a list of expectations.
