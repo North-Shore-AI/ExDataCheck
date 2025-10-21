@@ -1,7 +1,7 @@
 defmodule ExDataCheck.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @source_url "https://github.com/North-Shore-AI/ExDataCheck"
 
   def project do
@@ -35,14 +35,16 @@ defmodule ExDataCheck.MixProject do
   end
 
   defp description do
-    "Data validation and quality library for ML pipelines in Elixir. Provides expectations-based validation, data profiling, schema validation, and comprehensive quality metrics for machine learning workflows."
+    "Production-ready data validation and quality library for Elixir ML pipelines. " <>
+      "Provides 22 built-in expectations, drift detection, advanced profiling with outliers and correlations, " <>
+      "statistical analysis, and comprehensive quality metrics for machine learning workflows."
   end
 
   defp package do
     [
       name: "ex_data_check",
       description: description(),
-      files: ~w(lib mix.exs README.md CHANGELOG.md LICENSE),
+      files: ~w(lib mix.exs README.md CHANGELOG.md LICENSE IMPLEMENTATION_SUMMARY.md docs),
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
@@ -59,7 +61,32 @@ defmodule ExDataCheck.MixProject do
       source_ref: "v#{@version}",
       source_url: @source_url,
       homepage_url: @source_url,
-      extras: ["README.md", "CHANGELOG.md"],
+      extras: [
+        "README.md",
+        "CHANGELOG.md",
+        "IMPLEMENTATION_SUMMARY.md",
+        "docs/architecture.md",
+        "docs/expectations.md",
+        "docs/validators.md",
+        "docs/roadmap.md",
+        "docs/20251020/future_vision_phase3_4.md"
+      ],
+      groups_for_extras: [
+        Guides: [
+          "docs/architecture.md",
+          "docs/expectations.md",
+          "docs/validators.md"
+        ],
+        Planning: [
+          "docs/roadmap.md",
+          "docs/20251020/future_vision_phase3_4.md"
+        ],
+        Project: [
+          "README.md",
+          "CHANGELOG.md",
+          "IMPLEMENTATION_SUMMARY.md"
+        ]
+      ],
       assets: %{"assets" => "assets"},
       logo: "assets/ExDataCheck.svg",
       before_closing_head_tag: &mermaid_config/1
