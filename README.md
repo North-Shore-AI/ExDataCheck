@@ -1066,14 +1066,45 @@ end
 4. **Drift Detection** - Monitoring model performance over time
 5. **Production Deployment** - Best practices for production use
 
-### Examples Repository
+### Working Examples
 
-See the `examples/` directory for complete working examples:
-- Basic validation pipeline
-- ML training workflow
-- Production monitoring system
-- Data quality dashboard
-- Custom expectations
+The `examples/` directory contains fully functional, runnable examples demonstrating ExDataCheck capabilities:
+
+#### Run Examples
+
+```bash
+mix run examples/basic_validation.exs
+mix run examples/data_profiling.exs
+mix run examples/drift_detection.exs
+mix run examples/ml_pipeline.exs
+```
+
+#### Available Examples
+
+1. **basic_validation.exs** - Core validation with schema and value expectations
+   - Type checking, value ranges, regex patterns
+   - Handling validation failures and success cases
+   - Using `validate!` for fail-fast behavior
+
+2. **data_profiling.exs** - Comprehensive data profiling and analysis
+   - Basic and detailed profiling modes
+   - Outlier detection (IQR and Z-score methods)
+   - Correlation matrix generation
+   - Export to JSON and Markdown
+
+3. **drift_detection.exs** - Distribution drift monitoring for ML models
+   - Creating baselines from training data
+   - Detecting drift in production data
+   - Custom threshold configuration
+   - Integration with validation expectations
+
+4. **ml_pipeline.exs** - Complete end-to-end ML data quality pipeline
+   - Raw data validation
+   - Feature engineering validation
+   - Training data quality checks
+   - Production monitoring and drift detection
+
+See [examples/README.md](examples/README.md) for detailed descriptions and patterns.
 
 ## 🐛 Troubleshooting
 
