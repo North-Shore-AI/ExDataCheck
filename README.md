@@ -7,10 +7,12 @@
 **Production-Ready Data Validation and Quality Library for Elixir ML Pipelines**
 
 [![Elixir](https://img.shields.io/badge/elixir-1.14+-purple.svg)](https://elixir-lang.org)
-[![OTP](https://img.shields.io/badge/otp-25+-red.svg)](https://www.erlang.org)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/North-Shore-AI/ExDataCheck/blob/main/LICENSE)
-[![Tests](https://img.shields.io/badge/tests-273%20passing-success.svg)]()
-[![Coverage](https://img.shields.io/badge/coverage-%3E90%25-success.svg)]()
+[![OTP](https://img.shields.io/badge/otp-25+-blue.svg)](https://www.erlang.org)
+[![Hex.pm](https://img.shields.io/hexpm/v/ex_data_check.svg)](https://hex.pm/packages/ex_data_check)
+[![Documentation](https://img.shields.io/badge/docs-hexdocs-purple.svg)](https://hexdocs.pm/ex_data_check)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/North-Shore-AI/ExDataCheck/blob/main/LICENSE)
+[![Tests](https://img.shields.io/badge/tests-273%20passing-success.svg)](https://github.com/North-Shore-AI/ExDataCheck)
+[![Coverage](https://img.shields.io/badge/coverage-%3E90%25-success.svg)](https://github.com/North-Shore-AI/ExDataCheck)
 
 ---
 
