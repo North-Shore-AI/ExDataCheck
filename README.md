@@ -11,18 +11,18 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/ex_data_check.svg)](https://hex.pm/packages/ex_data_check)
 [![Documentation](https://img.shields.io/badge/docs-hexdocs-purple.svg)](https://hexdocs.pm/ex_data_check)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/North-Shore-AI/ExDataCheck/blob/main/LICENSE)
-[![Tests](https://img.shields.io/badge/tests-273%20passing-success.svg)](https://github.com/North-Shore-AI/ExDataCheck)
+[![Tests](https://img.shields.io/badge/tests-314%20passing-success.svg)](https://github.com/North-Shore-AI/ExDataCheck)
 [![Coverage](https://img.shields.io/badge/coverage-%3E90%25-success.svg)](https://github.com/North-Shore-AI/ExDataCheck)
 
 ---
 
-A comprehensive data validation and quality assessment library for Elixir, specifically designed for machine learning workflows. ExDataCheck brings Great Expectations-style validation to the Elixir ecosystem with 22 built-in expectations, advanced profiling, drift detection, and comprehensive statistical analysis.
+A comprehensive data validation and quality assessment library for Elixir, specifically designed for machine learning workflows. ExDataCheck brings Great Expectations-style validation to the Elixir ecosystem with 34 built-in expectations, advanced profiling, drift detection, and comprehensive statistical analysis.
 
 ## ✨ Features
 
-### Core Capabilities (v0.2.0)
+### Core Capabilities (v0.2.1)
 
-- ✅ **22 Built-in Expectations**: Schema, value, statistical, and ML-specific validations
+- ✅ **34 Built-in Expectations**: Schema, value, statistical, ML, temporal, string, and composite validations
 - ✅ **Data Profiling**: Comprehensive statistical analysis with outlier detection
 - ✅ **Drift Detection**: Distribution change detection with KS test and PSI
 - ✅ **Correlation Analysis**: Pearson and Spearman correlations for feature engineering
@@ -47,7 +47,7 @@ Add `ex_data_check` to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_data_check, "~> 0.2.0"}
+    {:ex_data_check, "~> 0.2.1"}
   ]
 end
 ```
@@ -597,6 +597,40 @@ defmodule DataQualityDashboard do
 end
 ```
 
+### Use Case 5: Temporal Event Streams
+
+```elixir
+import ExDataCheck
+
+expectations = [
+  expect_column_values_to_be_valid_timestamps(:event_time),
+  expect_column_timestamps_to_be_chronological(:event_time, strict: true),
+  expect_column_timestamps_to_be_within_range(:event_time, min_time, max_time),
+  expect_column_timestamp_intervals_to_be_regular(:event_time, expected_interval: {1, :minute})
+]
+
+result = ExDataCheck.validate(events, expectations)
+```
+
+### Use Case 6: Contact Data with Composite Logic
+
+```elixir
+import ExDataCheck
+
+expectations = [
+  # Either email or phone must be valid
+  expect_any([
+    expect_column_values_to_be_valid_emails(:contact),
+    expect_column_values_to_match_format(:contact, :us_phone)
+  ]),
+  # Require HTTPS URLs and proper UUIDs
+  expect_column_values_to_be_valid_urls(:profile_url, schemes: [:https]),
+  expect_column_values_to_be_valid_uuids(:user_id, version: 4)
+]
+
+result = ExDataCheck.validate(users, expectations)
+```
+
 ## 📖 Comprehensive API Reference
 
 ### Main API Functions
@@ -638,6 +672,35 @@ baseline = ExDataCheck.create_baseline(training_data)
 # Detect drift
 @spec detect_drift(dataset, baseline, opts) :: DriftResult.t()
 drift = ExDataCheck.detect_drift(production_data, baseline, threshold: 0.05)
+
+#### Expectation Helpers (new categories)
+
+```elixir
+# Temporal
+expect_column_values_to_be_valid_timestamps(:created_at)
+expect_column_timestamps_to_be_chronological(:event_time, strict: true)
+expect_column_timestamps_to_be_within_range(:timestamp, min_dt, max_dt)
+expect_column_timestamp_intervals_to_be_regular(:timestamp, expected_interval: {1, :hour})
+
+# String
+expect_column_values_to_be_valid_emails(:email)
+expect_column_values_to_be_valid_urls(:website, schemes: [:https])
+expect_column_values_to_be_valid_uuids(:id, version: 4)
+expect_column_values_to_match_format(:ip, :ip_address)
+expect_column_string_length_distribution(:name, mean_length: {3, 15}, max_length: 50)
+
+# Composite
+expect_all([expect_column_to_exist(:id), expect_column_values_to_be_unique(:id)])
+expect_any([
+  expect_column_values_to_be_valid_emails(:contact),
+  expect_column_values_to_match_format(:contact, :us_phone)
+])
+expect_at_least(2, [
+  expect_column_values_to_not_be_null(:name),
+  expect_column_values_to_be_valid_urls(:profile_url, schemes: [:https]),
+  expect_column_values_to_be_valid_emails(:email)
+])
+```
 ```
 
 ### Result Structures
@@ -695,7 +758,7 @@ Profile.quality_score(profile) # => float()
 
 ## 🏗️ Architecture & Module Structure
 
-### Current Module Organization (v0.2.0)
+### Current Module Organization (v0.2.1)
 
 ```
 lib/ex_data_check/
@@ -716,33 +779,39 @@ lib/ex_data_check/
     ├── schema.ex                    # Schema expectations (3)
     ├── value.ex                     # Value expectations (8)
     ├── statistical.ex               # Statistical expectations (5)
-    └── ml.ex                        # ML expectations (6)
+    ├── ml.ex                        # ML expectations (6)
+    ├── temporal.ex                  # Temporal expectations (4)       # NEW
+    ├── string.ex                    # String/format expectations (5)  # NEW
+    └── composite.ex                 # Logical composition (3)         # NEW
 ```
 
 ### Test Organization
 
 ```
 test/
-├── ex_data_check_test.exs           # Doctests
+├── ex_data_check_test.exs              # Doctests
 ├── ex_data_check_integration_test.exs  # Integration tests
-├── expectation_test.exs             # Core struct tests
-├── expectation_result_test.exs      # Result struct tests
-├── validation_result_test.exs       # Validation results
-├── profile_test.exs                 # Profiling tests
-├── profiling_integration_test.exs   # Profiling integration
-├── statistics_test.exs              # Statistics utilities
-├── correlation_test.exs             # Correlation analysis
-├── drift_test.exs                   # Drift detection
-├── outliers_test.exs                # Outlier detection
+├── expectation_test.exs                # Core struct tests
+├── expectation_result_test.exs         # Result struct tests
+├── validation_result_test.exs          # Validation results
+├── profile_test.exs                    # Profiling tests
+├── profiling_integration_test.exs      # Profiling integration
+├── statistics_test.exs                 # Statistics utilities
+├── correlation_test.exs                # Correlation analysis
+├── drift_test.exs                      # Drift detection
+├── outliers_test.exs                   # Outlier detection
 ├── validator/
-│   └── column_extractor_test.exs    # Column extraction
+│   └── column_extractor_test.exs       # Column extraction
 ├── expectations/
-│   ├── schema_test.exs              # Schema expectations
-│   ├── value_test.exs               # Value expectations
-│   ├── statistical_test.exs         # Statistical expectations
-│   └── ml_test.exs                  # ML expectations
+│   ├── schema_test.exs                 # Schema expectations
+│   ├── value_test.exs                  # Value expectations
+│   ├── statistical_test.exs            # Statistical expectations
+│   ├── ml_test.exs                     # ML expectations
+│   ├── temporal_test.exs               # Temporal expectations
+│   ├── string_test.exs                 # String/format expectations
+│   └── composite_test.exs              # Composite expectations
 └── support/
-    └── generators.ex                # Property-based test generators
+    └── generators.ex                   # Property-based test generators
 ```
 
 ## 🧪 Testing
@@ -766,7 +835,7 @@ mix test.watch
 ### Test Statistics (v0.2.0)
 
 ```
-✅ 273 Tests Passing
+✅ 314 Tests Passing
    - 4 Doctests
    - 25 Property-based tests
    - 244 Unit/Integration tests
@@ -952,12 +1021,12 @@ mix test
 - **[Future Vision](docs/20251020/future_vision_phase3_4.md)** - Phase 3 & 4 plans
 - **[Changelog](CHANGELOG.md)** - Version history and changes
 
-## 🏆 Project Stats (v0.2.0)
+## 🏆 Project Stats (v0.2.1)
 
 ```
-📊 Tests: 273 passing (4 doctests, 25 properties, 244 unit)
-🎯 Expectations: 22 (3 schema + 8 value + 5 statistical + 6 ML)
-📁 Modules: 19
+📊 Tests: 314 passing (includes comprehensive temporal, string, and composite tests)
+🎯 Expectations: 34 (3 schema + 8 value + 5 statistical + 6 ML + 4 temporal + 5 string + 3 composite)
+📁 Modules: 22
 📝 Lines of Code: ~7,500
 📈 Test Coverage: >90%
 ⚡ Performance: ~10k rows/second
@@ -1149,7 +1218,7 @@ Copyright (c) 2025 North Shore AI
 
 ## 📊 Project Status
 
-**Current Version**: v0.2.0
+**Current Version**: v0.2.1
 **Status**: Production Ready ✅
 **Maturity**: Early Adopter Phase
 **Maintenance**: Actively Developed
@@ -1169,3 +1238,8 @@ Copyright (c) 2025 North Shore AI
   <a href="CHANGELOG.md">Changelog</a> •
   <a href="docs/20251020/future_vision_phase3_4.md">Future Vision</a>
 </p>
+### New in v0.2.1
+
+- ⏱️ **Temporal expectations**: validate timestamps, ordering, ranges, and regular intervals
+- 🔤 **String expectations**: validate emails, URLs (with scheme/TLD controls), UUIDs (with version), common formats, and length distributions
+- 🔗 **Composite expectations**: AND/OR/threshold logic with `expect_all/1`, `expect_any/1`, `expect_at_least/2`

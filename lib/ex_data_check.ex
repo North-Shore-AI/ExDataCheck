@@ -72,12 +72,24 @@ defmodule ExDataCheck do
   - `ExDataCheck.Expectations.Value` - Value expectations (ranges, sets, patterns)
   - `ExDataCheck.Expectations.Statistical` - Statistical expectations (mean, median, stdev, normality)
   - `ExDataCheck.Expectations.ML` - ML-specific expectations (label balance, correlations, missing values)
+  - `ExDataCheck.Expectations.Temporal` - Time-series expectations (timestamps, chronology, intervals) [v0.2.1]
+  - `ExDataCheck.Expectations.String` - String format expectations (emails, URLs, UUIDs, patterns) [v0.2.1]
+  - `ExDataCheck.Expectations.Composite` - Logical composition (AND, OR, threshold) [v0.2.1]
 
   """
 
   alias ExDataCheck.{ValidationResult, ValidationError, Expectation, Profile, Drift}
   alias ExDataCheck.Validator.ColumnExtractor
-  alias ExDataCheck.Expectations.{Schema, Value, Statistical, ML}
+
+  alias ExDataCheck.Expectations.{
+    Schema,
+    Value,
+    Statistical,
+    ML,
+    Temporal,
+    String,
+    Composite
+  }
 
   # Convenience delegations to expectation modules
   # This allows users to call ExDataCheck.expect_column_to_exist(:age)
@@ -119,6 +131,31 @@ defmodule ExDataCheck do
   defdelegate expect_no_missing_values(column), to: ML
   defdelegate expect_table_row_count_to_be_between(min, max), to: ML
   defdelegate expect_no_data_drift(column, baseline, opts \\ []), to: ML
+
+  # Temporal expectations (NEW in v0.2.1)
+  defdelegate expect_column_values_to_be_valid_timestamps(column), to: Temporal
+  defdelegate expect_column_values_to_be_valid_timestamps(column, opts), to: Temporal
+  defdelegate expect_column_timestamps_to_be_chronological(column), to: Temporal
+  defdelegate expect_column_timestamps_to_be_chronological(column, opts), to: Temporal
+
+  defdelegate expect_column_timestamps_to_be_within_range(column, min_ts, max_ts),
+    to: Temporal
+
+  defdelegate expect_column_timestamp_intervals_to_be_regular(column, opts), to: Temporal
+
+  # String expectations (NEW in v0.2.1)
+  defdelegate expect_column_values_to_be_valid_emails(column), to: String
+  defdelegate expect_column_values_to_be_valid_urls(column), to: String
+  defdelegate expect_column_values_to_be_valid_urls(column, opts), to: String
+  defdelegate expect_column_values_to_be_valid_uuids(column), to: String
+  defdelegate expect_column_values_to_be_valid_uuids(column, opts), to: String
+  defdelegate expect_column_values_to_match_format(column, format), to: String
+  defdelegate expect_column_string_length_distribution(column, opts), to: String
+
+  # Composite expectations (NEW in v0.2.1)
+  defdelegate expect_all(expectations), to: Composite
+  defdelegate expect_any(expectations), to: Composite
+  defdelegate expect_at_least(min_passing, expectations), to: Composite
 
   # Drift detection utilities
   defdelegate create_baseline(dataset), to: Drift

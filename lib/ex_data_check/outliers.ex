@@ -172,34 +172,46 @@ defmodule ExDataCheck.Outliers do
     mean = Statistics.mean(values)
     stdev = Statistics.stdev(values)
 
-    if stdev == 0 do
-      %{
-        outliers: [],
-        outlier_count: 0,
-        mean: mean,
-        stdev: stdev,
-        threshold: threshold,
-        z_scores: %{}
-      }
-    else
-      z_scores =
-        values
-        |> Enum.map(fn v -> {v, abs((v - mean) / stdev)} end)
-        |> Enum.into(%{})
+    cond do
+      is_nil(stdev) ->
+        %{
+          outliers: [],
+          outlier_count: 0,
+          mean: mean,
+          stdev: stdev,
+          threshold: threshold,
+          z_scores: %{}
+        }
 
-      outliers =
-        z_scores
-        |> Enum.filter(fn {_v, z} -> z > threshold end)
-        |> Enum.map(fn {v, _z} -> v end)
+      stdev == 0.0 ->
+        %{
+          outliers: [],
+          outlier_count: 0,
+          mean: mean,
+          stdev: stdev,
+          threshold: threshold,
+          z_scores: %{}
+        }
 
-      %{
-        outliers: outliers,
-        outlier_count: length(outliers),
-        mean: mean,
-        stdev: stdev,
-        threshold: threshold,
-        z_scores: z_scores
-      }
+      true ->
+        z_scores =
+          values
+          |> Enum.map(fn v -> {v, abs((v - mean) / stdev)} end)
+          |> Enum.into(%{})
+
+        outliers =
+          z_scores
+          |> Enum.filter(fn {_v, z} -> z > threshold end)
+          |> Enum.map(fn {v, _z} -> v end)
+
+        %{
+          outliers: outliers,
+          outlier_count: length(outliers),
+          mean: mean,
+          stdev: stdev,
+          threshold: threshold,
+          z_scores: z_scores
+        }
     end
   end
 

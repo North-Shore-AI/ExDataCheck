@@ -68,11 +68,16 @@ defmodule ExDataCheck.Correlation do
     stdev_y = Statistics.stdev(y)
 
     # Check for zero variance
-    if stdev_x == 0 or stdev_y == 0 do
-      nil
-    else
-      # Pearson correlation = covariance / (stdev_x * stdev_y)
-      covariance / (n * stdev_x * stdev_y)
+    cond do
+      is_nil(stdev_x) or is_nil(stdev_y) ->
+        nil
+
+      stdev_x == 0.0 or stdev_y == 0.0 ->
+        nil
+
+      true ->
+        # Pearson correlation = covariance / (stdev_x * stdev_y)
+        covariance / (n * stdev_x * stdev_y)
     end
   end
 
