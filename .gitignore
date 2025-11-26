@@ -25,4 +25,7 @@ ex_data_check-*/
 # Temporary files, for example, from tests.
 /tmp/
 
+# Dialyzer PLT cache
+priv/plts/
+
 repomix*.xml
