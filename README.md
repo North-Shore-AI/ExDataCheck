@@ -832,7 +832,7 @@ mix test --cover
 mix test.watch
 ```
 
-### Test Statistics (v0.2.0)
+### Test Statistics (v0.2.1)
 
 ```
 ✅ 314 Tests Passing
@@ -909,7 +909,7 @@ All operations emit telemetry events for monitoring and debugging (Phase 3).
 
 ## 📈 Performance
 
-### Current Performance (v0.2.0)
+### Current Performance (v0.2.1)
 
 **Batch Validation**:
 - ~10,000 rows/second on typical hardware
