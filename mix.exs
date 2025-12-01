@@ -1,7 +1,7 @@
 defmodule ExDataCheck.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
+  @version "0.3.0"
   @source_url "https://github.com/North-Shore-AI/ExDataCheck"
 
   def project do
@@ -29,6 +29,7 @@ defmodule ExDataCheck.MixProject do
   defp deps do
     [
       {:jason, "~> 1.4"},
+      # {:crucible_ir, "~> 0.1.1", optional: true},  # Commented out - not yet published
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:ex_doc, "~> 0.31", only: :dev, runtime: false},
       {:stream_data, "~> 1.1", only: :test}

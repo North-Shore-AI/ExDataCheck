@@ -31,6 +31,12 @@ A comprehensive data validation and quality assessment library for Elixir, speci
 - ✅ **Property-Based Testing**: Mathematical correctness guaranteed
 - ✅ **Production Ready**: Zero warnings, >90% test coverage
 
+### New in v0.3.0
+
+- ✅ **Pipeline Stage Integration**: Use ExDataCheck in data processing pipelines
+- ✅ **Crucible Framework Support**: Optional integration with CrucibleIR (optional dependency)
+- ✅ **Context-Based API**: Stage module for pipeline workflows
+
 ### Coming Soon
 
 - 🔄 **Streaming Support**: Handle massive datasets (Phase 3)
@@ -47,7 +53,18 @@ Add `ex_data_check` to your `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_data_check, "~> 0.2.1"}
+    {:ex_data_check, "~> 0.3.0"}
+  ]
+end
+```
+
+**Optional**: For Crucible framework integration, add:
+
+```elixir
+def deps do
+  [
+    {:ex_data_check, "~> 0.3.0"},
+    {:crucible_ir, "~> 0.1.1"}  # Optional for pipeline integration
   ]
 end
 ```
@@ -163,6 +180,71 @@ File.write!("profile.json", json)
 # Export profile to Markdown
 markdown = ExDataCheck.Profile.to_markdown(profile)
 File.write!("profile.md", markdown)
+```
+
+### Pipeline Stage Integration (v0.3.0)
+
+Use ExDataCheck as a stage in data processing pipelines:
+
+```elixir
+# Define your pipeline with validation stage
+defmodule MyDataPipeline do
+  def run(raw_data) do
+    # Create context with data
+    %{dataset: raw_data}
+    |> validation_stage()
+    |> transformation_stage()
+    |> loading_stage()
+  end
+
+  defp validation_stage(context) do
+    ExDataCheck.Stage.run(context, %{
+      expectations: [
+        ExDataCheck.expect_column_to_exist(:id),
+        ExDataCheck.expect_no_missing_values(:features),
+        ExDataCheck.expect_table_row_count_to_be_between(100, 1_000_000)
+      ],
+      profile: true,      # Include profiling
+      fail_fast: true     # Raise on validation failure
+    })
+  end
+
+  defp transformation_stage(context) do
+    # Access validation results
+    if context.data_validation.passed do
+      # Transform data...
+      context
+    else
+      raise "Data validation failed"
+    end
+  end
+
+  defp loading_stage(context) do
+    # Load processed data...
+    context
+  end
+end
+
+# Run the pipeline
+result = MyDataPipeline.run(my_data)
+```
+
+**Optional Crucible Integration**: When using with the Crucible framework:
+
+```elixir
+# Add to mix.exs:
+{:crucible_ir, "~> 0.1.1"}
+
+# Use in Crucible pipeline:
+stage = ExDataCheck.CrucibleIntegration.stage()
+
+# Pipeline definition
+pipeline = [
+  DataLoadStage,
+  ExDataCheck.CrucibleIntegration.stage(),
+  ProcessingStage,
+  ModelTrainingStage
+]
 ```
 
 ## 📚 Complete Expectations Reference
@@ -1021,17 +1103,18 @@ mix test
 - **[Future Vision](docs/20251020/future_vision_phase3_4.md)** - Phase 3 & 4 plans
 - **[Changelog](CHANGELOG.md)** - Version history and changes
 
-## 🏆 Project Stats (v0.2.1)
+## 🏆 Project Stats (v0.3.0)
 
 ```
-📊 Tests: 314 passing (includes comprehensive temporal, string, and composite tests)
+📊 Tests: 340+ passing (includes pipeline stage integration tests)
 🎯 Expectations: 34 (3 schema + 8 value + 5 statistical + 6 ML + 4 temporal + 5 string + 3 composite)
-📁 Modules: 22
-📝 Lines of Code: ~7,500
+📁 Modules: 24 (includes Stage and CrucibleIntegration)
+📝 Lines of Code: ~8,000
 📈 Test Coverage: >90%
 ⚡ Performance: ~10k rows/second
 🐛 Warnings: 0
 ✅ Production Ready: Yes
+🔌 Pipeline Integration: Yes (v0.3.0)
 ```
 
 ## 🔬 Technical Details
@@ -1041,6 +1124,9 @@ mix test
 ```elixir
 # Runtime
 {:jason, "~> 1.4"}  # JSON encoding/decoding
+
+# Optional
+{:crucible_ir, "~> 0.1.1", optional: true}  # Crucible framework integration
 
 # Development/Test
 {:ex_doc, "~> 0.31", only: :dev, runtime: false}
@@ -1218,11 +1304,11 @@ Copyright (c) 2025 North Shore AI
 
 ## 📊 Project Status
 
-**Current Version**: v0.2.1
+**Current Version**: v0.3.0
 **Status**: Production Ready ✅
 **Maturity**: Early Adopter Phase
 **Maintenance**: Actively Developed
-**Next Release**: v0.3.0 (Q1 2026)
+**Next Release**: v0.4.0 (Q1 2026)
 
 ---
 

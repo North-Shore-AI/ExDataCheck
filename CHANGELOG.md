@@ -555,8 +555,165 @@ expect_at_least(2, [
 ])
 ```
 
+## [0.3.0] - 2025-11-26
+
+### Added
+
+#### Crucible Framework Integration
+
+Optional integration with the Crucible research framework for pipeline workflows:
+
+- **`ExDataCheck.Stage`** - Pipeline stage for data validation
+  - Accepts context with `:dataset` or `:examples` key
+  - Runs configured expectations on data
+  - Returns validation results with pass/fail status
+  - Optional profiling support
+  - Fail-fast mode for strict validation
+  - Example:
+    ```elixir
+    context = %{dataset: data}
+    opts = %{
+      expectations: [
+        expect_column_to_exist(:age),
+        expect_column_values_to_be_between(:age, 0, 120)
+      ],
+      profile: true
+    }
+    result = ExDataCheck.Stage.run(context, opts)
+    ```
+
+- **`ExDataCheck.CrucibleIntegration`** - Optional CrucibleIR integration module
+  - Only available when `crucible_ir` is included as dependency
+  - Provides `stage/0` function for pipeline integration
+  - Graceful fallback when CrucibleIR not available
+  - Example:
+    ```elixir
+    # Add to mix.exs deps:
+    {:crucible_ir, "~> 0.1.1"}
+
+    # Use in pipeline:
+    stage = ExDataCheck.CrucibleIntegration.stage()
+    ```
+
+#### Dependencies
+
+- **`crucible_ir ~> 0.1.1`** - Added as optional dependency
+  - Enables integration with Crucible framework pipelines
+  - Not required for core ExDataCheck functionality
+  - Install with: `{:crucible_ir, "~> 0.1.1"}`
+
+### Enhanced
+
+- **Pipeline Integration** - ExDataCheck can now be used as a stage in data processing pipelines
+- **Modular Design** - CrucibleIR integration is completely optional and doesn't affect core functionality
+- **Context-Based API** - Stage module uses context map pattern for pipeline compatibility
+
+### Technical
+
+- **Version**: 0.3.0
+- **New Modules**: 2 modules added
+  - `lib/ex_data_check/stage.ex` - Pipeline stage implementation
+  - `lib/ex_data_check/crucible_integration.ex` - Optional CrucibleIR integration
+- **Test Coverage**: Comprehensive test suite for Stage module
+  - `test/ex_data_check/stage_test.exs` - 30+ tests covering all Stage functionality
+  - Tests for basic validation, error handling, fail_fast mode, profiling, and integration scenarios
+- **Zero Breaking Changes** - Fully backward compatible with v0.2.1
+
+### Use Cases Enabled by v0.3.0
+
+#### 1. Pipeline-Based Data Validation
+
+```elixir
+# Define validation stage
+defmodule MyPipeline do
+  def run(data) do
+    %{dataset: data}
+    |> validate_stage()
+    |> transform_stage()
+    |> load_stage()
+  end
+
+  defp validate_stage(context) do
+    ExDataCheck.Stage.run(context, %{
+      expectations: [
+        ExDataCheck.expect_column_to_exist(:id),
+        ExDataCheck.expect_no_missing_values(:features)
+      ],
+      fail_fast: true
+    })
+  end
+end
+```
+
+#### 2. ML Training Pipeline with Quality Gates
+
+```elixir
+def training_pipeline(raw_data) do
+  %{dataset: raw_data}
+  |> ExDataCheck.Stage.run(%{
+    expectations: [
+      expect_table_row_count_to_be_between(1000, 1_000_000),
+      expect_label_balance(:target, min_ratio: 0.2),
+      expect_no_missing_values(:features)
+    ],
+    profile: true,
+    fail_fast: true
+  })
+  |> extract_features()
+  |> train_model()
+end
+```
+
+#### 3. Integration with Crucible Research Framework
+
+```elixir
+# When crucible_ir is available
+pipeline = [
+  LoadDataStage,
+  ExDataCheck.CrucibleIntegration.stage(),
+  ProcessingStage,
+  ExperimentStage
+]
+
+CrucibleIR.execute(pipeline, initial_context)
+```
+
+### Migration Guide
+
+Upgrading from v0.2.1 is seamless:
+
+1. Update dependency in `mix.exs`:
+   ```elixir
+   {:ex_data_check, "~> 0.3.0"}
+   ```
+
+2. Run `mix deps.update ex_data_check`
+
+3. All existing v0.2.1 code continues to work without changes
+
+4. Optional: Add CrucibleIR integration for pipeline support:
+   ```elixir
+   # Add to deps (optional)
+   {:crucible_ir, "~> 0.1.1"}
+
+   # Use Stage module for pipeline workflows
+   result = ExDataCheck.Stage.run(context, opts)
+   ```
+
+### Breaking Changes
+
+**NONE** - This release is 100% backward compatible with v0.2.1.
+
+### Documentation
+
+- Complete inline documentation for all new modules
+- Usage examples in module documentation
+- Integration guide for Crucible framework
+- Test suite demonstrating all Stage capabilities
+
 ## [Unreleased]
 
+[0.3.0]: https://github.com/North-Shore-AI/ExDataCheck/releases/tag/v0.3.0
 [0.2.1]: https://github.com/North-Shore-AI/ExDataCheck/releases/tag/v0.2.1
 [0.2.0]: https://github.com/North-Shore-AI/ExDataCheck/releases/tag/v0.2.0
 [0.1.0]: https://github.com/North-Shore-AI/ExDataCheck/releases/tag/v0.1.0
